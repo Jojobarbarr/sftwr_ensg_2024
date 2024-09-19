@@ -90,7 +90,6 @@ configure_file(cmake/HelloProjHardwareInfo.h.in HelloProjHardwareInfo.h)
 #add libraries
 add_subdirectory(src/basic)
 
-<<<<<<< HEAD
 #add executable
 option(HELLOWORLD_WITH_EXECUTABLES "Compile mains" ON)
 
