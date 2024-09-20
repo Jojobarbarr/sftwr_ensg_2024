@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+# to change if the library have some dependencies
+# include(CMakeFindDependencyMacro)
+# Change deps to the name of the package you want.
+# find_dependency(deps)
+# Load information for each target
+include(${CMAKE_CURRENT_LIST_DIR}/basic_target.cmake)
