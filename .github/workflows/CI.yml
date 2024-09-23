@@ -18,26 +18,13 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ..
         cmake --build . --config ${{env.BUILD_TYPE}}
         ctest -C ${{env.BUILD_TYPE}}
-  semantic-release:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.TOKEN }}
-      - name: Ensure package.json exists
-        run: |
-          if [ ! -f package.json ]; then
-            echo "Missing package.json file, generating one..."
-            npm init -y  # This will generate a basic package.json if missing
-          fi
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v4
-        with:
-          branch: main
-          extra_plugins: |
-            @semantic-release/commit-analyzer
-            @semantic-release/release-notes-generator
-            @semantic-release/github
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - name: Install dependencies
+      run: npm install
+    - name: Semantic Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub's default token for authentication
+      run: npx semantic-release
