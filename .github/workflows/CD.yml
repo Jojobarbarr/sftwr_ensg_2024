@@ -24,22 +24,3 @@ jobs:
           files: "build/*.tar.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
-  build_windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Generate package
-        run: |
-          mkdir build
-          cd build
-          $version = "${{ github.ref_name }}"
-          echo "{version}={$version}" >> $GITHUB_OUTPUT
-          cmake -DCMAKE_CXX_COMPILER=cl -A x64 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCPACK_PACKAGE_VERSION:STRING=$version -DCPACK_SYSTEM_NAME:STRING=windows-Release ..
-          cmake --build . --config ${{env.BUILD_TYPE}}
-          cmake --build . --target package
-      - name: Upload
-        uses: softprops/action-gh-release@v1
-        with:
-          files: "build/*.zip"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
