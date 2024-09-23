@@ -21,7 +21,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '20.8.1'
     - name: Semantic Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
