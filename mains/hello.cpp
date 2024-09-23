@@ -8,7 +8,6 @@ int main()
     print_version();
 
     std::cout << squared( 2 );
-std::cout <<"That's all folks!\n"
-;
+    std::cout << "That's all folks!\n";
     return 0;
 }
