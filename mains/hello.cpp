@@ -4,6 +4,6 @@ int main()
 {
     hello_world();
     print_version();
-    squared(4);
+    squared( 4 );
     return 0;
 }

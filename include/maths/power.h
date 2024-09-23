@@ -2,4 +2,4 @@
 
 #include <iostream>
 
-double squared(double num);
+double squared( double num );
