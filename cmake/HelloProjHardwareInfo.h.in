@@ -1,4 +1,0 @@
-#define HelloProj_HARDWARE_ARCHITECTURE "@HARDWARE_ARCH@"
-#define HelloProj_CPU_CORES "@CPU_CORES@"
-#define HelloProj_RAM_MB "@RAM_MB@"
-#define HelloProj_GPU_INFO "@GPU_INFO@"
