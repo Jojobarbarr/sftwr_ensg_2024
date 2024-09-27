@@ -1,64 +1,149 @@
-name: CD
+name: Node CI
+
 on:
   push:
-    tags: 'v*'
-env:
-  BUILD_TYPE: Release
+    tags:
+      - 'v*'
+
 jobs:
-  build_linux:
-    runs-on: ubuntu-latest
+  upload-release:
+
+    runs-on: ubuntu-18.04
+    needs: [build-macos, build-linux, build-windows]
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Generate package
-        run: |
-          mkdir -p build
-          cd build
-          version="${GITHUB_REF##*/*/}"
-          echo "{version}={$version}" >> $GITHUB_OUTPUT
-          cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCPACK_PACKAGE_VERSION:STRING=$version -DCPACK_SYSTEM_NAME:STRING=linux-Release ..
-          cmake --build . --config ${{env.BUILD_TYPE}}
-          cmake --build . --target package
-      - name: Upload
-        uses: softprops/action-gh-release@v1
-        with:
-          files: "build/*.tar.gz"
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-  build_windows:
-    runs-on: windows-latest
+    - uses: actions/checkout@v1
+    - name: create release
+      id: create_release
+      uses: actions/create-release@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false   
+    - name: download artifacts
+      uses: actions/download-artifact@v1
+      with:
+        name: uploads    
+    - name: upload macos
+      id: upload-macos 
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./uploads/macos.zip
+        asset_name: macos.zip
+        asset_content_type: application/zip  
+    - name: upload linux
+      id: upload-linux
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./uploads/linux.zip
+        asset_name: linux.zip
+        asset_content_type: application/zip   
+    - name: upload windows
+      id: upload-windows
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./uploads/windows.zip
+        asset_name: windows.zip
+        asset_content_type: application/zip                        
+
+  build-macos:
+
+    runs-on: macOS-10.14
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
     steps:
-      - uses: actions/checkout@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      - name: Set reusable strings
-        # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-        id: strings
-        shell: bash
-        run: |
-          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-  
-      - name: Configure CMake
-        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: >
-          cmake -B ${{ steps.strings.outputs.build-output-dir }}
-          -DCMAKE_CXX_COMPILER=cl
-          -DCMAKE_C_COMPILER=cl
-          -DCMAKE_BUILD_TYPE=Release
-          -S ${{ github.workspace }}
-  
-      - name: Build
-        # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
-  
-      - name: Test
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}
-        # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        run: ctest --build-config Release
-      - name: Upload
-        uses: softprops/action-gh-release@v1
-        with:
-          files: "build/*.zip"
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install, build, and test
+      run: |
+        npm ci
+        npm test
+    - name: npm run build
+      run: |
+        npm run build
+    - name: zip macos artifact
+      run: |
+        zip -r macos out 
+    - name: upload macos artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: uploads
+        path: macos.zip                    
+
+  build-linux:
+
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install, build, and test
+      run: |
+        npm ci
+        npm test
+    - name: npm run build
+      run: |
+        npm run build
+    - name: zip linux artifact
+      run: |
+        zip -r linux out  
+    - name: upload linux artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: uploads
+        path: linux.zip        
+
+  build-windows:
+
+    runs-on: windows-2019
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install, build, and test
+      run: |
+        npm ci
+        npm test
+    - name: npm run build
+      run: |
+        npm run build
+    - name: zip win artifact
+      run: |
+        powershell Compress-Archive out windows.zip 
+    - name: upload windows artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: uploads
+        path: windows.zip
