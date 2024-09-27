@@ -24,3 +24,28 @@ jobs:
           files: "build/*.tar.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
+  build_windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      - name: Set up MSVC environment
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      - name: Generate package
+        run: |
+          mkdir build
+          cd build
+          version="${GITHUB_REF##*/*/}"
+          echo "{version}={$version}" >> $GITHUB_OUTPUT
+          cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCPACK_PACKAGE_VERSION:STRING=$version -DCPACK_SYSTEM_NAME:STRING=win-Release ..
+          cmake --build . --config ${{env.BUILD_TYPE}}
+          cmake --build . --target package
+      - name: Upload
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "build/*.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
