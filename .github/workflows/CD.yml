@@ -12,7 +12,7 @@ jobs:
     needs: [build-macos, build-linux, build-windows]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: create release
       id: create_release
       uses: actions/create-release@master
@@ -24,7 +24,7 @@ jobs:
         draft: false
         prerelease: false   
     - name: download artifacts
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: uploads    
     - name: upload macos
@@ -67,9 +67,9 @@ jobs:
         node-version: [12.x]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install, build, and test
@@ -83,7 +83,7 @@ jobs:
       run: |
         zip -r macos out 
     - name: upload macos artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: uploads
         path: macos.zip                    
@@ -97,9 +97,9 @@ jobs:
         node-version: [12.x]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install, build, and test
@@ -113,7 +113,7 @@ jobs:
       run: |
         zip -r linux out  
     - name: upload linux artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: uploads
         path: linux.zip        
@@ -127,9 +127,9 @@ jobs:
         node-version: [12.x]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install, build, and test
@@ -143,7 +143,7 @@ jobs:
       run: |
         powershell Compress-Archive out windows.zip 
     - name: upload windows artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: uploads
         path: windows.zip
